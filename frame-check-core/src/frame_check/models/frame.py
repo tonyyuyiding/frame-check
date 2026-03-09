@@ -4,15 +4,15 @@ from .base import ColumnName, FrameClass
 
 
 class FrameInstance:
-    __slots__ = ("_class", "_columns", "maybe_more")
-    _class: FrameClass
+    __slots__ = ("class_", "_columns", "maybe_more")
+    class_: FrameClass
     _columns: set[ColumnName]
     maybe_more: bool
 
     def __init__(
         self, class_: FrameClass, columns: Iterable[ColumnName], maybe_more: bool
     ) -> None:
-        self._class = class_
+        self.class_ = class_
         self._columns = set(columns)
         self.maybe_more = maybe_more
 
@@ -26,7 +26,7 @@ class FrameInstance:
         self._columns = set(columns)
 
     def copy(self) -> "FrameInstance":
-        return FrameInstance(self._class, self._columns, self.maybe_more)
+        return FrameInstance(self.class_, self._columns, self.maybe_more)
 
     @property
     def columns(self) -> frozenset[ColumnName]:

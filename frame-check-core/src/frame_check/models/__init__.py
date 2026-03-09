@@ -2,7 +2,13 @@ from .base import ColumnName, FrameClass, Lib
 from .context import VisitorContext
 from .diagnostic import CodeRegion, Diagnostic, Severity
 from .frame import FrameInstance
-from .value import FCCallable, Unknown, FCValue, FCGenerator
+from .value import (
+    FCCallable,
+    FCCallableInit,
+    Unknown,
+    FCValue,
+    FCGenerator,
+)
 
 __all__ = [
     "ColumnName",
@@ -14,6 +20,7 @@ __all__ = [
     "Severity",
     "FrameInstance",
     "FCCallable",
+    "FCCallableInit",
     "Unknown",
     "FCValue",
     "FCGenerator",

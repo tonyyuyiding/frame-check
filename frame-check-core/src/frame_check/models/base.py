@@ -5,8 +5,8 @@ ColumnName = Hashable
 
 
 class Lib(StrEnum):
-    pandas = "pandas"
+    pd = "pandas"
 
 
 class FrameClass(StrEnum):
-    pandas_DataFrame = f"{Lib.pandas}.DataFrame"
+    pd_DataFrame = f"{Lib.pd}.DataFrame"
