@@ -1,6 +1,6 @@
 import ast
 
-from ..models import Unknown, VisitorContext, FCGenerator
+from frame_check.models import Unknown, VisitorContext, FCGenerator
 
 from ._assign import visit_Assign
 from ._call import visit_Call

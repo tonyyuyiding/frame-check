@@ -1,6 +1,6 @@
 import ast
 
-from ..models import FCValue, Lib, Unknown, VisitorContext
+from frame_check.models import FCValue, Lib, Unknown, VisitorContext
 
 
 def visit_Import(ctx: VisitorContext, node: ast.Import) -> FCValue:

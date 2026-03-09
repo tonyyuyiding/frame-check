@@ -1,7 +1,7 @@
 import ast
 
-from ..models import FrameInstance, Lib, Unknown, VisitorContext, FCGenerator
-from ..libs import get_callable
+from frame_check.models import FrameInstance, Lib, Unknown, VisitorContext, FCGenerator
+from frame_check.libs import get_callable
 
 
 def visit_Call(ctx: VisitorContext, node: ast.Call) -> FCGenerator:
