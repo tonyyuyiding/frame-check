@@ -40,7 +40,7 @@ def maybe_column_names(
 ) -> Generator[tuple[ast.expr, ColumnName], None, None] | _Unknown: ...
 def maybe_column_names(
     ctx: VisitorContext, expr: ast.expr | list[ast.expr]
-) -> Generator[tuple[ast.expr, ColumnName]] | _Unknown:
+) -> Generator[tuple[ast.expr, ColumnName], None, None] | _Unknown:
     match expr:
         case ast.List(elts):
             for elt in elts:
