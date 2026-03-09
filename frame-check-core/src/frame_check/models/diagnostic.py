@@ -1,8 +1,10 @@
 import ast
 from dataclasses import dataclass
 from enum import StrEnum
+from collections.abc import Iterable
 
 from .base import ColumnName
+from .frame import FrameInstance
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
@@ -13,7 +15,7 @@ class CodeRegion:
     end_col_offset: int | None
 
     @staticmethod
-    def from_expr(expr: ast.Expr) -> "CodeRegion":
+    def from_expr(expr: ast.expr) -> "CodeRegion":
         return CodeRegion(
             lineno=expr.lineno,
             col_offset=expr.col_offset,
@@ -34,18 +36,17 @@ class Diagnostic:
     category: Severity
     missing_column: ColumnName
     underline_region: CodeRegion
-    similar_columns: tuple[ColumnName, ...] | None
+    available_columns: Iterable[ColumnName] | None
 
     @staticmethod
     def mark_expr(
-        expr: ast.Expr,
-        category: Severity,
+        expr: ast.expr,
+        frame: FrameInstance,
         missing_column: ColumnName,
-        similar_columns: tuple[ColumnName, ...] | None = None,
     ) -> "Diagnostic":
         return Diagnostic(
-            category=category,
+            category=Severity.WARNING if frame.maybe_more else Severity.ERROR,
             missing_column=missing_column,
             underline_region=CodeRegion.from_expr(expr),
-            similar_columns=similar_columns,
+            available_columns=frame.columns,
         )

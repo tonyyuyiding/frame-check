@@ -3,6 +3,8 @@ from functools import partial
 from ._registry import _method_registry, _func_registry
 from ..models import Lib, FrameInstance, FCCallable
 
+from . import _pandas as _pandas
+
 
 def get_callable(obj: FrameInstance | Lib, attr: str) -> FCCallable:
     if isinstance(obj, FrameInstance):

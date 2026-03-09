@@ -16,11 +16,11 @@ class FrameInstance:
         self._columns = set(columns)
         self.maybe_more = maybe_more
 
-    def has_column(self, column: ColumnName) -> bool:
-        return column in self._columns
-
     def add_column(self, column: ColumnName) -> None:
         self._columns.add(column)
+
+    def add_columns(self, columns: Iterable[ColumnName]) -> None:
+        self._columns.update(columns)
 
     def update_columns(self, columns: Iterable[ColumnName]) -> None:
         self._columns = set(columns)
