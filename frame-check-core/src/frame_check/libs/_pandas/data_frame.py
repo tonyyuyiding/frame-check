@@ -2,6 +2,7 @@ import ast
 from typing import Generator
 
 from frame_check.models import (
+    is_column_name,
     Diagnostic,
     VisitorContext,
     FrameClass,
@@ -24,10 +25,10 @@ def pd_DataFrame_getitem(
     if key is None:
         return Unknown
     column_name = maybe_str(ctx, key)
-    if isinstance(column_name, str):
+    if is_column_name(column_name):
         if column_name not in self.columns:
             yield Diagnostic.mark_expr(key, self, column_name)
-        return Unknown
+        return FrameInstance(self.class_, {column_name}, maybe_more=True)
     gen = maybe_column_names(ctx, key)
     if isinstance(gen, Generator):
         existing_columns = set()
@@ -51,7 +52,7 @@ def pd_DataFrame_setitem(
     if key is None:
         return Unknown
     column_name = maybe_str(ctx, key)
-    if isinstance(column_name, str):
+    if is_column_name(column_name):
         new_frame = self.copy()
         new_frame.add_columns({column_name})
         return new_frame
@@ -88,8 +89,8 @@ def pd_DataFrame_insert(
     if column_arg is None:
         return Unknown
     column_name = maybe_str(ctx, column_arg)
-    if column_name is Unknown:
-        return Unknown
-    new_frame = self.copy()
-    new_frame.add_columns({column_name})
-    return new_frame
+    if is_column_name(column_name):
+        new_frame = self.copy()
+        new_frame.add_columns({column_name})
+        return new_frame
+    return Unknown

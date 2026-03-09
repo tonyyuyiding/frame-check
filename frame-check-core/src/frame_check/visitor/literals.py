@@ -1,5 +1,5 @@
 import ast
-from typing import Generator
+from typing import Generator, overload
 
 from frame_check.models import (
     ColumnName,
@@ -26,8 +26,20 @@ def maybe_column_name(ctx: VisitorContext, expr: ast.expr) -> ColumnName | _Unkn
             return Unknown
 
 
+@overload
+def maybe_column_names(
+    ctx: VisitorContext, expr: ast.List
+) -> Generator[tuple[ast.expr, ColumnName], None, None]: ...
+@overload
+def maybe_column_names(
+    ctx: VisitorContext, expr: list[ast.expr]
+) -> Generator[tuple[ast.expr, ColumnName], None, None]: ...
+@overload
 def maybe_column_names(
     ctx: VisitorContext, expr: ast.expr
+) -> Generator[tuple[ast.expr, ColumnName], None, None] | _Unknown: ...
+def maybe_column_names(
+    ctx: VisitorContext, expr: ast.expr | list[ast.expr]
 ) -> Generator[tuple[ast.expr, ColumnName]] | _Unknown:
     match expr:
         case ast.List(elts):
@@ -36,5 +48,11 @@ def maybe_column_names(
                 if isinstance(column_name, _Unknown):
                     continue
                 yield elt, column_name
+        case list():
+            for ex in expr:
+                column_name = maybe_column_name(ctx, ex)
+                if isinstance(column_name, _Unknown):
+                    continue
+                yield ex, column_name
         case _:
             return Unknown
