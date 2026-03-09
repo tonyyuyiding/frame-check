@@ -1,11 +1,12 @@
-from collections.abc import Hashable
 from enum import StrEnum
+from typing import TypeGuard
 
-ColumnName = Hashable
+# Not using Hashable directly because `Unknown` is also hashable.
+ColumnName = str | int | bool
 
 
-def is_column_name(value) -> bool:
-    return isinstance(value, Hashable)
+def is_column_name(value) -> TypeGuard[ColumnName]:
+    return isinstance(value, ColumnName)
 
 
 class Lib(StrEnum):
