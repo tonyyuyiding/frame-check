@@ -1,7 +1,7 @@
 import ast
 from typing import Generator
 
-from frame_check.models import (
+from frame_check_core.models import (
     is_column_name,
     Diagnostic,
     VisitorContext,
@@ -9,7 +9,7 @@ from frame_check.models import (
     FrameInstance,
     Unknown,
 )
-from frame_check.visitor import get_argument, maybe_str, maybe_column_names
+from frame_check_core.visitor import get_argument, maybe_str, maybe_column_names
 
 from .._registry import method
 

@@ -1,7 +1,7 @@
 import ast
 from typing import Generator, overload
 
-from frame_check.models import (
+from frame_check_core.models import (
     ColumnName,
     is_column_name,
     _Unknown,

@@ -1,14 +1,14 @@
 import ast
 from typing import Generator
 
-from frame_check.models import (
+from frame_check_core.models import (
     is_column_name,
     Lib,
     VisitorContext,
     FrameClass,
     FrameInstance,
 )
-from frame_check.visitor import (
+from frame_check_core.visitor import (
     get_argument,
     maybe_column_name,
     maybe_column_names,

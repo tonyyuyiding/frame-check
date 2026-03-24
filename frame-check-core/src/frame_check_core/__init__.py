@@ -1,14 +1,13 @@
-"""
-frame-check: A static column checker for dataframes!
-"""
+# TODO: this file is a placeholder for CLI testing.
 
+import ast
 import argparse
 import sys
 from pathlib import Path
+from typing import Generator
 
-from .checker import Checker
-from .config import Config, collect_python_files
-from .formatting import format_diagnostic_rich
+from .checker import visit
+from .models import VisitorContext, Diagnostic
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -30,38 +29,10 @@ def create_parser() -> argparse.ArgumentParser:
         help="Python files (file.py), directories (dir/) or glob patterns (dir/**/*.py) to check. Directories will be searched recursively by default.",
     )
 
-    parser.add_argument(
-        "--ignore",
-        type=str,
-        nargs="+",
-        help="Files (file.py), directories (dir/) or glob patterns (dir/**/*.py) to ignore during checking.",
-        default=[],
-    )
-    parser.add_argument(
-        "--non-recursive",
-        "-n",
-        action="store_true",
-        help="Do not recursively check directories for Python files.",
-        default=False,
-    )
-    parser.add_argument(
-        "--config",
-        "-c",
-        type=Path,
-        help="Path to a configuration file (if not specified, configuration will be read frame-check.toml or pyproject.toml, if present).",
-    )
-
-    parser.add_argument(
-        "-v",
-        "--version",
-        action="version",
-        version="%(prog)s 0.1.0",
-    )
-
     return parser
 
 
-def main(argv: list[str] | None = None, override_config: Config | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     """Main entry point for the CLI."""
     parser = create_parser()
     args = parser.parse_args(argv)
@@ -70,59 +41,27 @@ def main(argv: list[str] | None = None, override_config: Config | None = None) -
         parser.print_help(sys.stderr)
         return 0
 
-    if override_config is None:
-        config = Config()
+    file = Path(args.files[0])
+    if not file.exists():
+        print(f"Error: File '{file}' does not exist.", file=sys.stderr)
+        return 1
 
-        if args.config:
-            try:
-                config = Config.load_from(args.config)
-            except Exception as e:
-                print(
-                    f"Error loading configuration from {args.config}:\n{e}",
-                    file=sys.stderr,
-                )
-                return 1
-        elif (frame_check_settings := Path.cwd() / "frame-check.toml").exists():
-            config = Config.load_from(frame_check_settings)
-        elif (pyproject_settings := Path.cwd() / "pyproject.toml").exists():
-            config = Config.load_from(pyproject_settings)
-        config.update(
-            exclude=args.ignore,
-            recursive=not args.non_recursive,
-        )
-    else:
-        config = override_config
+    has_error = False
+    context = VisitorContext()
+    module: ast.Module = ast.parse(file.read_text())
 
-    python_files = collect_python_files(
-        args.files,
-        exclusion_patterns=config.exclude,
-        recursive=config.recursive,
-    )
+    def walk(node: ast.AST) -> Generator[Diagnostic, None, None]:
+        yield from visit(context, node)
+        for field, value in ast.iter_fields(node):
+            if isinstance(value, list):
+                for item in value:
+                    if isinstance(item, ast.AST):
+                        yield from walk(item)
+            elif isinstance(value, ast.AST):
+                yield from walk(value)
 
-    if not python_files:
-        print("No Python files found to check.", file=sys.stderr)
-        return 0
+    for err in walk(module):
+        print(err)
+        has_error = True
 
-    # Track if any file has diagnostics
-    has_errors = False
-
-    # Process each file
-    for file_path in python_files:
-        try:
-            source_code = file_path.read_text()
-            checker = Checker.check(file_path)
-            if checker.diagnostics:
-                has_errors = True
-                for diag in checker.diagnostics:
-                    print(
-                        format_diagnostic_rich(diag, file_path, source_code=source_code)
-                    )
-
-        except SyntaxError as e:
-            print(f"Syntax error in {file_path}:\n{e}", file=sys.stderr)
-            has_errors = True
-        except Exception as e:
-            print(f"Error checking {file_path}:\n{e}", file=sys.stderr)
-            has_errors = True
-
-    return 1 if has_errors else 0
+    return 1 if has_error else 0
