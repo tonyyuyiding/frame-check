@@ -11,7 +11,7 @@ from ..models import (
     VisitorContext,
 )
 
-_FCMethodInit = Callable[
+type _FCMethodInit = Callable[
     [FrameInstance, VisitorContext, list[ast.expr], list[ast.keyword]],
     FCGenerator | FCValue,
 ]

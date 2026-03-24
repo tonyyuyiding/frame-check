@@ -13,9 +13,9 @@ class _Unknown:
 
 Unknown = _Unknown()
 
-FCValue = Union[FrameInstance, "FCCallable", _Unknown]
-FCGenerator = Generator[Diagnostic, None, FCValue]
-FCCallableInit = Callable[
+type FCValue = Union[FrameInstance, FCCallable, _Unknown]
+type FCGenerator = Generator[Diagnostic, None, FCValue]
+type FCCallableInit = Callable[
     [VisitorContext, list[ast.expr], list[ast.keyword]], FCGenerator | FCValue
 ]
 
