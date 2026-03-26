@@ -84,8 +84,6 @@ def format_diagnostic(source_file: Path, diagnostic: Diagnostic) -> str:
                 caret_line = f"{color}{caret_line}{RESET}"
             lines.append(f"{SPACE * line_width} {GUTTER_CHAR} {caret_line}")
 
-    lines.append(f"{SPACE * line_width} {GUTTER_CHAR}")
-
     # available columns
 
     available_values = sorted((str(c) for c in diagnostic.available_columns or ()))
