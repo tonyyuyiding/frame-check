@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Generator
 
 from .checker import visit
-from .models import VisitorContext, Diagnostic
+from .models import VisitorContext, Diagnostic, Severity
 from .ui import format_diagnostic
 
 
@@ -63,6 +63,7 @@ def main(argv: list[str] | None = None) -> int:
 
     for err in walk(module):
         print(format_diagnostic(file, err))
-        has_error = True
+        if err.category == Severity.ERROR:
+            has_error = True
 
     return 1 if has_error else 0
