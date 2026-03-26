@@ -8,6 +8,7 @@ from typing import Generator
 
 from .checker import visit
 from .models import VisitorContext, Diagnostic
+from .ui import format_diagnostic
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -61,7 +62,7 @@ def main(argv: list[str] | None = None) -> int:
                 yield from walk(value)
 
     for err in walk(module):
-        print(err)
+        print(format_diagnostic(file, err))
         has_error = True
 
     return 1 if has_error else 0
