@@ -48,7 +48,7 @@ def format_diagnostic(source_file: Path, diagnostic: Diagnostic) -> str:
         f"Did you mean '{suggestion}'?" if suggestion is not None else ""
     )
 
-    header = f"{header_location}: {header_report} {header_suggestion}"
+    header = f"[{diagnostic.category}] {header_location}: {header_report} {header_suggestion}"
 
     if support_color and color is not None:
         header = f"{BOLD}{color}{header}{RESET}"
