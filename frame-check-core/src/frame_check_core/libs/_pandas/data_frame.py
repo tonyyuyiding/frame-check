@@ -9,7 +9,7 @@ from frame_check_core.models import (
     FrameInstance,
     Unknown,
 )
-from frame_check_core.visitor import get_argument, maybe_str, maybe_column_names
+from frame_check_core.utils import get_argument, maybe_str, maybe_column_names
 
 from .._registry import method
 

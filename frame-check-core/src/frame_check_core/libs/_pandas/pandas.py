@@ -8,7 +8,7 @@ from frame_check_core.models import (
     FrameClass,
     FrameInstance,
 )
-from frame_check_core.visitor import (
+from frame_check_core.utils import (
     get_argument,
     maybe_column_name,
     maybe_column_names,
