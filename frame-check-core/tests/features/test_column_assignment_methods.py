@@ -51,7 +51,8 @@ def test_cam_7_1_assign_subscript():
         import pandas as pd
 
         df = pd.DataFrame({})
-        df.assign(A=[1, 2, 3])["A"]
+        df = df.assign(A=[1, 2, 3])
+        df["A"]
 
     res = check_body_as_module(scenario)
     assert len(res.diagnostics) == 0
