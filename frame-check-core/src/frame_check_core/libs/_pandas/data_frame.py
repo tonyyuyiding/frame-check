@@ -53,15 +53,13 @@ def pd_DataFrame_setitem(
         return Unknown
     column_name = maybe_str(ctx, key)
     if is_column_name(column_name):
-        new_frame = self.copy()
-        new_frame.add_columns({column_name})
-        return new_frame
+        self.add_columns({column_name})
+        return Unknown
     gen = maybe_column_names(ctx, key)
     if isinstance(gen, set):
-        new_frame = self.copy()
         for _, column_name in gen:
-            new_frame.add_column(column_name)
-        return new_frame
+            self.add_column(column_name)
+        return Unknown
     return Unknown
 
 

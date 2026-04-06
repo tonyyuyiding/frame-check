@@ -10,6 +10,10 @@ type CheckResult = Generator[Diagnostic, None, None]
 
 
 def _check(node: ast.AST, ctx: VisitorContext) -> CheckResult:
+    # TODO: These node types are not supported yet, and we early return to avoid errors.
+    if isinstance(node, (ast.FunctionDef, ast.ClassDef, ast.Lambda)):
+        return
+
     yield from visit(node, ctx)
     for child in ast.iter_child_nodes(node):
         yield from _check(child, ctx)

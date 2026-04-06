@@ -7,13 +7,12 @@ from ._call import visit_Call
 from ._import import visit_Import
 from ._name import visit_Name
 from ._subscript import visit_Subscript
-
-_VALUE_ATTR = "__frame_check_value__"
+from .marks import VALUE_ATTR
 
 
 def visit(node: ast.AST, ctx: VisitorContext) -> FCGenerator:
-    if hasattr(node, _VALUE_ATTR):
-        return getattr(node, _VALUE_ATTR)
+    if hasattr(node, VALUE_ATTR):
+        return getattr(node, VALUE_ATTR)
     if isinstance(node, ast.Assign):
         res = yield from visit_Assign(node, ctx)
     elif isinstance(node, ast.Call):
@@ -26,5 +25,5 @@ def visit(node: ast.AST, ctx: VisitorContext) -> FCGenerator:
         res = yield from visit_Subscript(node, ctx)
     else:
         res = Unknown
-    setattr(node, _VALUE_ATTR, res)
+    setattr(node, VALUE_ATTR, res)
     return res
