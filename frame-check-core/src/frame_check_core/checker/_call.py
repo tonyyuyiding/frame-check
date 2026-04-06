@@ -10,12 +10,12 @@ from frame_check_core.models import (
 from frame_check_core.libs import get_callable
 
 
-def visit_Call(ctx: VisitorContext, node: ast.Call) -> FCGenerator:
+def visit_Call(node: ast.Call, ctx: VisitorContext) -> FCGenerator:
     from . import visit
 
     match node.func:
         case ast.Attribute(value, attr):
-            value = yield from visit(ctx, value)
+            value = yield from visit(value, ctx)
             if not isinstance(value, (FrameInstance, Lib)):
                 return Unknown
             func = get_callable(value, attr)

@@ -3,7 +3,7 @@ import ast
 from frame_check_core.models import FCValue, Lib, Unknown, VisitorContext
 
 
-def visit_Import(ctx: VisitorContext, node: ast.Import) -> FCValue:
+def visit_Import(node: ast.Import, ctx: VisitorContext) -> FCValue:
     for alias in node.names:
         try:
             lib = Lib(alias.name)
