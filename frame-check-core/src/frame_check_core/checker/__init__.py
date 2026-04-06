@@ -19,7 +19,7 @@ def _check(node: ast.AST, ctx: VisitorContext) -> CheckResult:
         yield from _check(child, ctx)
 
 
-def check(_target: ast.AST | Path, /) -> CheckResult:
+def check(_target: ast.AST | Path, /, ctx: VisitorContext | None = None) -> CheckResult:
     if isinstance(_target, ast.AST):
         target = _target
     elif isinstance(_target, Path):
@@ -27,5 +27,6 @@ def check(_target: ast.AST | Path, /) -> CheckResult:
         target = ast.parse(source)
     else:
         raise TypeError(f"Unsupported target type: {type(_target)}")
-    ctx = VisitorContext()
+    if ctx is None:
+        ctx = VisitorContext()
     yield from _check(target, ctx)
