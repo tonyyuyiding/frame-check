@@ -11,7 +11,7 @@ from frame_check_core.libs import get_callable
 
 
 def visit_Call(node: ast.Call, ctx: VisitorContext) -> FCGenerator:
-    from . import visit
+    from .visit import visit
 
     match node.func:
         case ast.Attribute(value, attr):

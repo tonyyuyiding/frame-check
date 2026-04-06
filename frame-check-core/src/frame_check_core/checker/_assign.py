@@ -5,7 +5,7 @@ from frame_check_core.libs import get_callable
 
 
 def visit_Assign(node: ast.Assign, ctx: VisitorContext) -> FCGenerator:
-    from . import visit
+    from .visit import visit
 
     value = yield from visit(node.value, ctx)
     if value is Unknown:

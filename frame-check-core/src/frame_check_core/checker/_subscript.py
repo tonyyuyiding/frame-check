@@ -5,7 +5,7 @@ from frame_check_core.libs import get_callable
 
 
 def visit_Subscript(node: ast.Subscript, ctx: VisitorContext) -> FCGenerator:
-    from . import visit
+    from .visit import visit
 
     # __setitem__ is handled by `visit_Assign`, so no need to worry here.
     value = yield from visit(node.value, ctx)

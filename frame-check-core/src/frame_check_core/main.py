@@ -1,6 +1,5 @@
 # TODO: this file is a placeholder for CLI testing.
 
-import ast
 import argparse
 import sys
 from pathlib import Path
@@ -42,14 +41,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     file = Path(args.files[0])
-    if not file.exists():
-        print(f"Error: File '{file}' does not exist.", file=sys.stderr)
-        return 1
-
     has_error = False
-    module: ast.Module = ast.parse(file.read_text())
 
-    for err in check(module):
+    for err in check(file):
         print(format_diagnostic(file, err))
         if err.category == Severity.ERROR:
             has_error = True
