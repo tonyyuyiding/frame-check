@@ -4,10 +4,9 @@ import ast
 import argparse
 import sys
 from pathlib import Path
-from typing import Generator
 
-from .checker import visit
-from .models import VisitorContext, Diagnostic, Severity
+from .checker import check
+from .models import VisitorContext, Severity
 from .ui import format_diagnostic
 
 
@@ -51,17 +50,7 @@ def main(argv: list[str] | None = None) -> int:
     context = VisitorContext()
     module: ast.Module = ast.parse(file.read_text())
 
-    def walk(node: ast.AST) -> Generator[Diagnostic, None, None]:
-        yield from visit(context, node)
-        for field, value in ast.iter_fields(node):
-            if isinstance(value, list):
-                for item in value:
-                    if isinstance(item, ast.AST):
-                        yield from walk(item)
-            elif isinstance(value, ast.AST):
-                yield from walk(value)
-
-    for err in walk(module):
+    for err in check(context, module):
         print(format_diagnostic(file, err))
         if err.category == Severity.ERROR:
             has_error = True

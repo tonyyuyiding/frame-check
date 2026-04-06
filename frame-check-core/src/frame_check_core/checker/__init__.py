@@ -1,6 +1,7 @@
 import ast
+from collections.abc import Generator
 
-from frame_check_core.models import Unknown, VisitorContext, FCGenerator
+from frame_check_core.models import Diagnostic, Unknown, VisitorContext, FCGenerator
 
 from ._assign import visit_Assign
 from ._call import visit_Call
@@ -28,3 +29,9 @@ def visit(ctx: VisitorContext, node: ast.AST) -> FCGenerator:
         res = Unknown
     setattr(node, _VALUE_ATTR, res)
     return res
+
+
+def check(ctx: VisitorContext, node: ast.AST) -> Generator[Diagnostic, None, None]:
+    yield from visit(ctx, node)
+    for child in ast.iter_child_nodes(node):
+        yield from check(ctx, child)
