@@ -56,7 +56,7 @@ def pd_DataFrame_setitem(
         self.add_columns({column_name})
         return Unknown
     gen = maybe_column_names(ctx, key)
-    if isinstance(gen, set):
+    if isinstance(gen, Generator):
         for _, column_name in gen:
             self.add_column(column_name)
         return Unknown
