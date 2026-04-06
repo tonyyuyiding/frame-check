@@ -88,7 +88,6 @@ def pd_DataFrame_insert(
         return Unknown
     column_name = maybe_str(ctx, column_arg)
     if is_column_name(column_name):
-        new_frame = self.copy()
-        new_frame.add_columns({column_name})
-        return new_frame
+        self.add_columns({column_name})
+        return Unknown
     return Unknown
