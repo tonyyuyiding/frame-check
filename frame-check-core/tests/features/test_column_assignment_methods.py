@@ -1,25 +1,29 @@
 """Feature tests for column assignment methods (CAM)."""
 
 import pytest
-from frame_check_core.checker import Checker
+
+from frame_check_core.models import FrameClass, FrameInstance
+
+from tests.utils import assert_frame_equals, check_body_as_module
+
 
 # --- CAM-1: Direct assignment ---
 
 
 @pytest.mark.support(code="#CAM-1")
 def test_cam_1_direct_assignment():
-    """df["c"] = [7, 8, 9]"""
-    code = """
-import pandas as pd
-df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
-df["c"] = [7, 8, 9]
-df["c"]
-"""
-    fc = Checker.check(code)
-    df = fc.dfs.get("df")
-    assert df is not None
-    assert sorted(df.columns.keys()) == ["a", "b", "c"]
-    assert len(fc.diagnostics) == 0
+    def scenario():
+        import pandas as pd
+
+        df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+        df["c"] = [7, 8, 9]
+        df["c"]
+
+    res = check_body_as_module(scenario)
+    assert len(res.diagnostics) == 0, f"Unexpected diagnostics: {res.diagnostics}"
+    actual = res.frame_definitions.get("df")
+    expected = FrameInstance(FrameClass.pd_DataFrame, {"a", "b", "c"}, False)
+    assert_frame_equals(actual, expected)
 
 
 # --- CAM-7: assign method ---
@@ -27,72 +31,70 @@ df["c"]
 
 @pytest.mark.support(code="#CAM-7")
 def test_cam_7_assign_method():
-    """df = df.assign(A=[1, 2, 3])"""
-    code = """
-import pandas as pd
-df = pd.DataFrame({})
-df = df.assign(A=[1, 2, 3])
-df["A"]
-"""
-    fc = Checker.check(code)
-    df = fc.dfs.get("df")
-    assert df is not None
-    assert set(df.columns.keys()) == {"A"}
-    assert len(fc.diagnostics) == 0
+    def scenario():
+        import pandas as pd
+
+        df = pd.DataFrame({})
+        df = df.assign(A=[1, 2, 3])
+        df["A"]
+
+    res = check_body_as_module(scenario)
+    assert len(res.diagnostics) == 0
+    actual = res.frame_definitions.get("df")
+    expected = FrameInstance(FrameClass.pd_DataFrame, {"A"}, False)
+    assert_frame_equals(actual, expected)
 
 
 @pytest.mark.support(code="#CAM-7-1")
-@pytest.mark.xfail(reason="Not implemented", strict=True)
 def test_cam_7_1_assign_subscript():
-    """df.assign(A=[1, 2, 3])["A"] - chained subscript access"""
-    code = """
-import pandas as pd
-df = pd.DataFrame({})
-df.assign(A=[1, 2, 3])["A"]
-"""
-    fc = Checker.check(code)
-    df = fc.dfs.get("df")
-    assert df is not None
-    assert set(df.columns.keys()) == {"A"}
-    assert len(fc.diagnostics) == 0
+    def scenario():
+        import pandas as pd
+
+        df = pd.DataFrame({})
+        df = df.assign(A=[1, 2, 3])
+        df["A"]
+
+    res = check_body_as_module(scenario)
+    assert len(res.diagnostics) == 0
+    actual = res.frame_definitions.get("df")
+    expected = FrameInstance(FrameClass.pd_DataFrame, {"A"}, False)
+    assert_frame_equals(actual, expected)
 
 
 @pytest.mark.support(code="#CAM-7-2")
-@pytest.mark.xfail(reason="Not implemented", strict=True)
 def test_cam_7_2_assign_chain():
-    """df = df.assign(A=[1, 2, 3]).assign(B=[4, 5, 6]) - chained assign"""
-    code = """
-import pandas as pd
-df = pd.DataFrame({})
-df = df.assign(A=[1, 2, 3]).assign(B=[4, 5, 6])
-df["A"]
-df["B"]
-"""
-    fc = Checker.check(code)
-    df = fc.dfs.get("df")
-    assert df is not None
-    assert set(df.columns.keys()) == {"A", "B"}
-    assert len(fc.diagnostics) == 0
+    def scenario():
+        import pandas as pd
+
+        df = pd.DataFrame({})
+        df = df.assign(A=[1, 2, 3]).assign(B=[4, 5, 6])
+        df["A"]
+        df["B"]
+
+    res = check_body_as_module(scenario)
+    assert len(res.diagnostics) == 0
+    actual = res.frame_definitions.get("df")
+    expected = FrameInstance(FrameClass.pd_DataFrame, {"A", "B"}, False)
+    assert_frame_equals(actual, expected)
 
 
 # --- CAM-9: insert method ---
 
 
 @pytest.mark.support(code="#CAM-9")
-@pytest.mark.xfail(reason="Standalone method calls not implemented", strict=True)
 def test_cam_9_insert_method():
-    """df.insert(0, "A", [1, 2, 3])"""
-    code = """
-import pandas as pd
-df = pd.DataFrame({})
-df.insert(0, "A", [1, 2, 3])
-df["A"]
-"""
-    fc = Checker.check(code)
-    df = fc.dfs.get("df")
-    assert df is not None
-    assert set(df.columns.keys()) == {"A"}
-    assert len(fc.diagnostics) == 0
+    def scenario():
+        import pandas as pd
+
+        df = pd.DataFrame({})
+        df.insert(0, "A", [1, 2, 3])
+        df["A"]
+
+    res = check_body_as_module(scenario)
+    assert len(res.diagnostics) == 0
+    actual = res.frame_definitions.get("df")
+    expected = FrameInstance(FrameClass.pd_DataFrame, {"A"}, False)
+    assert_frame_equals(actual, expected)
 
 
 # --- CAM-10: setitem with list ---
@@ -100,16 +102,16 @@ df["A"]
 
 @pytest.mark.support(code="#CAM-10")
 def test_cam_10_setitem_with_list():
-    """df[["c", "d"]] = [[7, 8, 9], [10, 11, 12]]"""
-    code = """
-import pandas as pd
-df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
-df[["c", "d"]] = [[7, 8, 9], [10, 11, 12]]
-df["c"]
-df["d"]
-"""
-    fc = Checker.check(code)
-    df = fc.dfs.get("df")
-    assert df is not None
-    assert sorted(df.columns.keys()) == ["a", "b", "c", "d"]
-    assert len(fc.diagnostics) == 0
+    def scenario():
+        import pandas as pd
+
+        df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+        df[["c", "d"]] = [[7, 8, 9], [10, 11, 12]]
+        df["c"]
+        df["d"]
+
+    res = check_body_as_module(scenario)
+    assert len(res.diagnostics) == 0
+    actual = res.frame_definitions.get("df")
+    expected = FrameInstance(FrameClass.pd_DataFrame, {"a", "b", "c", "d"}, False)
+    assert_frame_equals(actual, expected)

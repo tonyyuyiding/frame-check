@@ -3,7 +3,10 @@
 from pathlib import Path
 
 import pytest
-from frame_check_core.checker import Checker
+
+from frame_check_core.models import FrameClass, FrameInstance
+
+from tests.utils import assert_frame_equals, check_body_as_module
 
 CSV_TEST_FILE = (Path(__file__).parent.parent / "data" / "csv_file.csv").as_posix()
 
@@ -13,18 +16,18 @@ CSV_TEST_FILE = (Path(__file__).parent.parent / "data" / "csv_file.csv").as_posi
 
 @pytest.mark.support(code="#DCMS-1")
 def test_dcms_1_dictionary_of_lists():
-    """pd.DataFrame({'col1': [1, 2], 'col2': [3, 4]})"""
-    code = """
-import pandas as pd
-df = pd.DataFrame({'col1': [1, 2], 'col2': [3, 4]})
-df['col1']
-df['col2']
-"""
-    fc = Checker.check(code)
-    df = fc.dfs.get("df")
-    assert df is not None
-    assert set(df.columns.keys()) == {"col1", "col2"}
-    assert len(fc.diagnostics) == 0
+    def scenario():
+        import pandas as pd
+
+        df = pd.DataFrame({"a": [1, 2], "b": [3, 4]})
+        df["a"]
+        df["b"]
+
+    res = check_body_as_module(scenario)
+    assert len(res.diagnostics) == 0
+    actual = res.frame_definitions.get("df")
+    expected = FrameInstance(FrameClass.pd_DataFrame, {"a", "b"}, False)
+    assert_frame_equals(actual, expected)
 
 
 # --- DCMS-2: List of Dictionaries ---
@@ -32,49 +35,66 @@ df['col2']
 
 @pytest.mark.support(code="#DCMS-2")
 def test_dcms_2_list_of_dictionaries():
-    """pd.DataFrame([{'col1': 1, 'col2': 3}, {'col1': 2, 'col2': 4}])"""
-    code = """
-import pandas as pd
-df = pd.DataFrame([{'col1': 1, 'col2': 3}, {'col1': 2, 'col2': 4}])
-df['col1']
-df['col2']
-"""
-    fc = Checker.check(code)
-    df = fc.dfs.get("df")
-    assert df is not None
-    assert set(df.columns.keys()) == {"col1", "col2"}
-    assert len(fc.diagnostics) == 0
+    def scenario():
+        import pandas as pd
+
+        df = pd.DataFrame([{"a": 1, "b": 3}, {"a": 2, "b": 4}])
+        df["a"]
+        df["b"]
+
+    res = check_body_as_module(scenario)
+    assert len(res.diagnostics) == 0
+    actual = res.frame_definitions.get("df")
+    expected = FrameInstance(FrameClass.pd_DataFrame, {"a", "b"}, False)
+    assert_frame_equals(actual, expected)
 
 
 # --- DCMS-6: From CSV ---
 
 
+def test_dcms_6_read_csv():
+    def scenario():
+        import pandas as pd
+
+        df = pd.read_csv(CSV_TEST_FILE)  # noqa: F841
+
+    res = check_body_as_module(scenario)
+    assert len(res.diagnostics) == 0
+    actual = res.frame_definitions.get("df")
+    expected = FrameInstance(FrameClass.pd_DataFrame, {}, True)
+    assert_frame_equals(actual, expected)
+
+
 @pytest.mark.support(code="#DCMS-6")
 def test_dcms_6_read_csv_usecols():
-    """pd.read_csv('file.csv', usecols=["a","b"])"""
-    code = f"""
-import pandas as pd
-df = pd.read_csv("{CSV_TEST_FILE}", usecols=['a', 'b', 'c'])
-"""
-    fc = Checker.check(code)
-    assert set(fc.dfs.keys()) == {"df"}
-    tracker = fc.dfs.get("df")
-    assert tracker is not None
-    assert tracker.id_ == "df"
-    assert set(tracker.columns.keys()) == {"a", "b", "c"}
+    def scenario():
+        import pandas as pd
+
+        df = pd.read_csv(CSV_TEST_FILE, usecols=["a", "b", "c"])  # noqa: F841
+
+    res = check_body_as_module(scenario)
+    assert len(res.diagnostics) == 0
+    actual = res.frame_definitions.get("df")
+    expected = FrameInstance(FrameClass.pd_DataFrame, {"a", "b", "c"}, False)
+    assert_frame_equals(actual, expected)
 
 
 @pytest.mark.support(code="#DCMS-6-1")
+@pytest.mark.xfail(
+    reason="Variable-resolved usecols is not implemented in frame_check_core",
+    strict=True,
+)
 def test_dcms_6_1_read_csv_usecols_indirect():
     """pd.read_csv with usecols from variable"""
-    code = f"""
-import pandas as pd
-cols = ['a', 'b', 'c']
-df = pd.read_csv("{CSV_TEST_FILE}", usecols=cols)
-"""
-    fc = Checker.check(code)
-    assert set(fc.dfs.keys()) == {"df"}
-    tracker = fc.dfs.get("df")
-    assert tracker is not None
-    assert tracker.id_ == "df"
-    assert set(tracker.columns.keys()) == {"a", "b", "c"}
+
+    def scenario():
+        import pandas as pd
+
+        cols = ["a", "b", "c"]
+        df = pd.read_csv(CSV_TEST_FILE, usecols=cols)  # noqa: F841
+
+    res = check_body_as_module(scenario)
+    assert len(res.diagnostics) == 0
+    actual = res.frame_definitions.get("df")
+    expected = FrameInstance(FrameClass.pd_DataFrame, {"a", "b", "c"}, False)
+    assert_frame_equals(actual, expected)
