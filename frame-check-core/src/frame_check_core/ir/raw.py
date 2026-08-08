@@ -98,6 +98,13 @@ class Dict(expr):
         return f"{{{', '.join(pairs)}}}"
 
 
+class Expr(stmt):
+    value: expr
+
+    def __str__(self) -> str:
+        return str(self.value)
+
+
 class ImportAlias(_RawIRNode):
     name: str
     asname: str | None

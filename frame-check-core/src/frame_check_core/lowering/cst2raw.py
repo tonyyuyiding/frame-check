@@ -43,6 +43,10 @@ def _lower_small_statement(
     match node:
         case cst.Assign():
             return _lower_assign(node, cr)
+        case cst.Expr():
+            return raw.Expr(
+                value=_lower_expression(node.value, cr), code_range=cr.get(node, None)
+            )
         case cst.Import():
             return _lower_import(node, cr)
         case cst.ImportFrom():
