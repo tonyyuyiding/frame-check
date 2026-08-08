@@ -8,10 +8,12 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "libcst>=1.8.6",
 ]
 
 [project.scripts]
 frame-check = "frame_check_core:main"
+frame-check-compile = "frame_check_core.bin.compiler:main"
 
 
 [build-system]
