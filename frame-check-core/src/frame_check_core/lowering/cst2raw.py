@@ -11,7 +11,7 @@ def lower_module(module: cst.Module, code_ranges: CodeRanges) -> raw.Module:
     stmts: tuple[raw.stmt, ...] = ()
     for node in module.body:
         stmts += _lower_statements(node, code_ranges)
-    return raw.Module(body=tuple(stmts), code_range=code_ranges[module])
+    return raw.Module(body=tuple(stmts), code_range=code_ranges.get(module, None))
 
 
 # ---------------------------------------------------------------------------
@@ -56,22 +56,22 @@ def _lower_assign(node: cst.Assign, cr: CodeRanges) -> raw.Assign:
         targets=tuple(_lower_expression(t.target, cr) for t in node.targets),
         value=_lower_expression(node.value, cr),
         type_comment=None,
-        code_range=cr[node],
+        code_range=cr.get(node, None),
     )
 
 
 def _lower_import(node: cst.Import, cr: CodeRanges) -> raw.Import:
     return raw.Import(
         names=tuple(_lower_import_alias(n, cr) for n in node.names),
-        code_range=cr[node],
+        code_range=cr.get(node, None),
     )
 
 
 def _lower_import_from(node: cst.ImportFrom, cr: CodeRanges) -> raw.ImportFrom:
     match node.names:
         case cst.ImportStar():
-            names: tuple[raw.ImportAlias, ...] = (
-                raw.ImportAlias(name="*", asname=None, code_range=cr[node.names]),
+            names = (
+                raw.ImportAlias(name="*", asname=None, code_range=cr.get(node, None)),
             )
         case _:
             names = tuple(_lower_import_alias(n, cr) for n in node.names)
@@ -79,16 +79,14 @@ def _lower_import_from(node: cst.ImportFrom, cr: CodeRanges) -> raw.ImportFrom:
         module=_parse_module_name(node.module) if node.module is not None else None,
         names=names,
         level=len(node.relative) if node.relative else 0,
-        code_range=cr[node],
+        code_range=cr.get(node, None),
     )
 
 
 def _lower_import_alias(node: cst.ImportAlias, cr: CodeRanges) -> raw.ImportAlias:
     asname = _lower_asname(node.asname) if node.asname is not None else None
     return raw.ImportAlias(
-        name=_parse_module_name(node.name),
-        asname=asname,
-        code_range=cr[node],
+        name=_parse_module_name(node.name), asname=asname, code_range=cr.get(node, None)
     )
 
 
@@ -134,11 +132,11 @@ def _lower_expression(node: cst.BaseExpression, cr: CodeRanges) -> raw.expr:
         case cst.List():
             return _lower_list(node, cr)
         case _:
-            return raw.Unknown(code_range=cr[node])
+            return raw.Unknown(code_range=cr.get(node, None))
 
 
 def _lower_name(node: cst.Name, cr: CodeRanges) -> raw.Name:
-    return raw.Name(id=node.value, code_range=cr[node])
+    return raw.Name(id=node.value, code_range=cr.get(node, None))
 
 
 def _lower_number(
@@ -146,26 +144,26 @@ def _lower_number(
 ) -> raw.Constant | raw.Unknown:
     match node:
         case cst.Integer():
-            return raw.Constant(value=int(node.value, 0), code_range=cr[node])
+            return raw.Constant(value=int(node.value, 0), code_range=cr.get(node, None))
         case _:
-            return raw.Unknown(code_range=cr[node])
+            return raw.Unknown(code_range=cr.get(node, None))
 
 
 def _lower_string(node: cst.SimpleString, cr: CodeRanges) -> raw.Constant | raw.Unknown:
     try:
         value = ast.literal_eval(node.value)
     except (ValueError, SyntaxError):
-        return raw.Unknown(code_range=cr[node])
+        return raw.Unknown(code_range=cr.get(node, None))
     if isinstance(value, str):
-        return raw.Constant(value=value, code_range=cr[node])
-    return raw.Unknown(code_range=cr[node])
+        return raw.Constant(value=value, code_range=cr.get(node, None))
+    return raw.Unknown(code_range=cr.get(node, None))
 
 
 def _lower_attribute(node: cst.Attribute, cr: CodeRanges) -> raw.Attribute:
     return raw.Attribute(
         value=_lower_expression(node.value, cr),
         attr=node.attr.value,
-        code_range=cr[node],
+        code_range=cr.get(node, None),
     )
 
 
@@ -181,7 +179,7 @@ def _lower_call(node: cst.Call, cr: CodeRanges) -> raw.Call:
         func=func,
         args=tuple(args),
         keywords=tuple(keywords),
-        code_range=cr[node],
+        code_range=cr.get(node, None),
     )
 
 
@@ -190,7 +188,7 @@ def _lower_call_keyword(node: cst.Arg, cr: CodeRanges) -> raw.CallKeyword:
     return raw.CallKeyword(
         arg=kw.value if kw is not None else None,
         value=_lower_expression(node.value, cr),
-        code_range=cr[node],
+        code_range=cr.get(node, None),
     )
 
 
@@ -199,7 +197,7 @@ def _lower_binary_op(node: cst.BinaryOperation, cr: CodeRanges) -> raw.BinOp:
         left=_lower_expression(node.left, cr),
         op=_lower_binary_operator(node.operator),
         right=_lower_expression(node.right, cr),
-        code_range=cr[node],
+        code_range=cr.get(node, None),
     )
 
 
@@ -245,7 +243,9 @@ def _lower_dict(node: cst.Dict, cr: CodeRanges) -> raw.Dict:
                 values.append(_lower_expression(element.value, cr))
             case _:
                 pass
-    return raw.Dict(keys=tuple(keys), values=tuple(values), code_range=cr[node])
+    return raw.Dict(
+        keys=tuple(keys), values=tuple(values), code_range=cr.get(node, None)
+    )
 
 
 def _lower_list(node: cst.List, cr: CodeRanges) -> raw.List:
@@ -256,4 +256,4 @@ def _lower_list(node: cst.List, cr: CodeRanges) -> raw.List:
                 elts.append(_lower_expression(elem.value, cr))
             case _:
                 pass
-    return raw.List(elts=tuple(elts), code_range=cr[node])
+    return raw.List(elts=tuple(elts), code_range=cr.get(node, None))

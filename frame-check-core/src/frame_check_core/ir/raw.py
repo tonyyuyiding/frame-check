@@ -10,7 +10,7 @@ from .common import BinOperator
 @dataclass
 @dataclass_transform()
 class _RawIRNode(ABC):
-    code_range: CodeRange
+    code_range: CodeRange | None
 
     def __init_subclass__(cls, /, **kwargs):
         super().__init_subclass__(**kwargs)
