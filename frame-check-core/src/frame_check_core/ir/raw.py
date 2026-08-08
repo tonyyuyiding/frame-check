@@ -7,21 +7,24 @@ from libcst.metadata import CodeRange
 from .common import BinOperator
 
 
-@dataclass(slots=True, kw_only=True)
+@dataclass
 @dataclass_transform()
 class _RawIRNode(ABC):
     code_range: CodeRange
 
     def __init_subclass__(cls, /, **kwargs):
         super().__init_subclass__(**kwargs)
-        dataclass(cls, slots=True, kw_only=True)
+        if issubclass(cls, ABC):
+            dataclass(cls)
+        else:
+            dataclass(cls, slots=True, kw_only=True)
 
 
-class expr(_RawIRNode):
+class expr(_RawIRNode, ABC):
     pass
 
 
-class stmt(_RawIRNode):
+class stmt(_RawIRNode, ABC):
     pass
 
 
